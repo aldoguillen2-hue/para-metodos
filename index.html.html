@@ -1,0 +1,262 @@
+<title>Simulacro de Metodología</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: una columna de lectura (~720px); barra de progreso fija arriba; cada pregunta es una ficha con caso, opciones y retroalimentación. */
+:root {
+  --bg: #F2F3F0;
+  --surface: #FCFCFA;
+  --ink: #18233A;
+  --ink-soft: #4B5568;
+  --line: #D6D9DF;
+  --accent: #2B5A8A;
+  --accent-soft: #E2EAF3;
+  --ok: #1F6B4A;
+  --ok-soft: #DDEFE5;
+  --bad: #A5361C;
+  --bad-soft: #F6E1DA;
+  --font-display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font-body: 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121826; --surface: #1A2233; --ink: #E8ECF2; --ink-soft: #A9B3C4; --line: #2F3A50;
+    --accent: #8FB3DA; --accent-soft: #22324A; --ok: #7FCFA6; --ok-soft: #173326; --bad: #F0A08A; --bad-soft: #3A2019;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121826; --surface: #1A2233; --ink: #E8ECF2; --ink-soft: #A9B3C4; --line: #2F3A50;
+  --accent: #8FB3DA; --accent-soft: #22324A; --ok: #7FCFA6; --ok-soft: #173326; --bad: #F0A08A; --bad-soft: #3A2019;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.wrap {
+  max-width: 760px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+  display: flex; flex-direction: column; gap: 28px;
+}
+header.intro { display: flex; flex-direction: column; gap: 10px; }
+.eyebrow { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+h1 { font-family: var(--font-display); font-weight: 600; font-size: clamp(30px, 6vw, 42px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.lead { color: var(--ink-soft); margin: 0; max-width: 62ch; }
+.rules { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; }
+.rules li { font-size: 13px; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; color: var(--ink-soft); background: var(--surface); }
+
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px;
+}
+.bar .stat { font-size: 14px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.bar .stat b { color: var(--ink); font-weight: 600; }
+.track { flex: 1 1 160px; height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; min-width: 0; }
+.fill { height: 100%; width: 0; background: var(--accent); transition: width .3s ease; }
+
+ol.questions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px 22px 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.q-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.q-num { font-family: var(--font-display); font-size: 22px; font-weight: 600; color: var(--accent); }
+.q-topic { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+.q-case { margin: 0; font-size: 16.5px; }
+.q-ask { margin: 0; font-weight: 600; }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opt {
+  display: flex; gap: 12px; align-items: flex-start; text-align: left; width: 100%;
+  font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+  border-radius: 10px; padding: 11px 14px; cursor: pointer; transition: border-color .15s, background .15s;
+}
+.opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+.opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.opt:disabled { cursor: default; }
+.opt .letter { font-weight: 600; color: var(--accent); min-width: 1.2em; }
+.opt .tag { margin-left: auto; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; white-space: nowrap; padding-left: 8px; }
+.opt.is-correct { border-color: var(--ok); background: var(--ok-soft); }
+.opt.is-correct .letter, .opt.is-correct .tag { color: var(--ok); }
+.opt.is-wrong { border-color: var(--bad); background: var(--bad-soft); }
+.opt.is-wrong .letter, .opt.is-wrong .tag { color: var(--bad); }
+.feedback { border-top: 1px solid var(--line); padding-top: 12px; font-size: 15px; color: var(--ink-soft); display: flex; flex-direction: column; gap: 4px; }
+.feedback .verdict { font-weight: 600; }
+.feedback .verdict.ok { color: var(--ok); }
+.feedback .verdict.bad { color: var(--bad); }
+.feedback .src { font-size: 13px; }
+
+.result { background: var(--surface); border: 2px solid var(--accent); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+.result h2 { font-family: var(--font-display); font-weight: 600; font-size: 28px; margin: 0; }
+.result p { margin: 0; color: var(--ink-soft); }
+.score { font-family: var(--font-display); font-size: 48px; font-weight: 600; color: var(--accent); line-height: 1; font-variant-numeric: tabular-nums; }
+button.reset { align-self: flex-start; font: inherit; font-weight: 600; color: var(--surface); background: var(--accent); border: none; border-radius: 10px; padding: 10px 18px; cursor: pointer; }
+button.reset:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+footer { font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 16px; }
+footer i { font-style: italic; }
+@media (prefers-reduced-motion: reduce) { .fill, .opt { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <span class="eyebrow">UCRISH · Metodología de la Investigación · IV período 2026</span>
+    <h1>Simulacro del examen: selección única</h1>
+    <p class="lead">Diez casos con la misma estructura del Tipo I del examen. Lea cada situación y elija el concepto al que se refiere. Al responder verá si acertó, por qué y en qué página del libro está el tema.</p>
+    <ul class="rules">
+      <li>10 preguntas</li>
+      <li>Una sola respuesta por pregunta</li>
+      <li>Capítulos 1 al 6</li>
+    </ul>
+  </header>
+
+  <div class="bar" role="status" aria-live="polite">
+    <span class="stat">Respondidas <b id="answered">0</b> de 10</span>
+    <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+    <span class="stat">Aciertos <b id="correct">0</b></span>
+  </div>
+
+  <ol class="questions" id="questions"></ol>
+
+  <section class="result" id="result" hidden>
+    <span class="eyebrow">Resultado</span>
+    <div class="score" id="score">0 / 10</div>
+    <h2 id="result-title">Simulacro terminado</h2>
+    <p id="result-text"></p>
+    <button class="reset" id="reset" type="button">Volver a intentar</button>
+  </section>
+
+  <footer>Preguntas de práctica elaboradas para la clase. Texto base: Hernández-Sampieri, R., Fernández-Collado, C. y Baptista, P. (2014). <i>Metodología de la investigación</i> (6.ª ed.). McGraw-Hill.</footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  { topic: "Enfoques", caso: "Un equipo encuesta a 380 abonados del servicio de agua de Comayagua, elegidos al azar de la lista oficial, para estimar qué porcentaje está satisfecho y extender ese resultado a todos los abonados.",
+    ask: "¿Qué característica del enfoque cuantitativo ilustra el caso?",
+    opts: ["Selecciona casos por la riqueza de información que aportan", "Las hipótesis surgen durante el estudio o al final", "Busca representatividad para generalizar los resultados", "El proceso es circular y regresa a fases anteriores"],
+    ans: 2, why: "En el enfoque cuantitativo la muestra busca representar a la población para generalizar. Las otras opciones describen el enfoque cualitativo.", src: "Cap. 1, tabla 1.1, p. 12" },
+  { topic: "La idea", caso: "La tía de una estudiante es gerente de una cooperativa y le ofrece acceso a los expedientes de crédito. Por esa facilidad, la estudiante decide investigar la morosidad de los socios.",
+    ask: "¿Qué motor impulsó la idea?",
+    opts: ["Inspiración", "Oportunidad", "Conceptualización", "Necesidad de resolver una problemática"],
+    ans: 1, why: "La oportunidad surge cuando por facilidad podemos indagar sobre un tema, por ejemplo porque un familiar nos da acceso.", src: "Cap. 2, figura 2.1, p. 25" },
+  { topic: "Objetivos", caso: "Un estudiante escribe como objetivo específico: «Aplicar una encuesta a 200 estudiantes de Derecho».",
+    ask: "¿Qué error frecuente comete este objetivo?",
+    opts: ["Usa términos generales, poco específicos", "Se dirige a una consecuencia o producto de la investigación", "Se reduce a la obtención de un dato", "Se dirige a una etapa de la investigación y no a todo el proceso"],
+    ans: 3, why: "Aplicar una encuesta es una actividad de la recolección de datos, no un objetivo de investigación.", src: "Cap. 3, p. 45" },
+  { topic: "Objetivos", caso: "Otra estudiante propone como objetivo: «Promover el uso de la conciliación entre los litigantes de Comayagua».",
+    ask: "¿Qué error frecuente comete este objetivo?",
+    opts: ["Se dirige a una consecuencia, entregable, producto o impacto", "Se dirige a una etapa de la investigación", "Plantea estudios dispersos en varias direcciones", "Es de poco valor para toda una investigación"],
+    ans: 0, why: "«Promover» describe un impacto que se busca después del estudio; no es algo que la investigación responda.", src: "Cap. 3, pp. 45–46" },
+  { topic: "Justificación", caso: "En su justificación, un estudiante escribe: «Los resultados permitirán saber si la teoría de precios hedónicos explica lo que ocurre en una ciudad pequeña y sugerirán hipótesis para estudios futuros».",
+    ask: "¿Qué criterio de justificación está desarrollando?",
+    opts: ["Relevancia social", "Implicaciones prácticas", "Valor teórico", "Utilidad metodológica"],
+    ans: 2, why: "El valor teórico pregunta si la información puede servir para revisar, desarrollar o apoyar una teoría, y si se pueden sugerir hipótesis para futuros estudios.", src: "Cap. 3, p. 40" },
+  { topic: "Marco teórico", caso: "Una estudiante cita tres estudios previos y muestra que ninguno midió el cumplimiento de las medidas de protección en su municipio. Lo hace para dejar claro que su estudio hace falta.",
+    ask: "¿Qué función del marco teórico está aprovechando?",
+    opts: ["Ayuda a prevenir errores de otras investigaciones", "Documenta la necesidad de realizar el estudio", "Provee un marco de referencia para interpretar los resultados", "Inspira nuevas líneas y áreas de investigación"],
+    ans: 1, why: "Es la cuarta de las siete funciones que enumera el libro: documentar la necesidad de realizar el estudio.", src: "Cap. 4, pp. 60–61" },
+  { topic: "Marco teórico", caso: "Antes de redactar, un estudiante dibuja un esquema con «gestión documental» al centro, unido a «archivo», «actas» y «tiempo de búsqueda». Con base en ese esquema profundiza la revisión de la literatura.",
+    ask: "¿Qué método usa para construir su marco teórico?",
+    opts: ["Método de mapeo", "Método por índices (vertebración)", "Adopción de una teoría desarrollada", "Búsqueda con operadores booleanos"],
+    ans: 0, why: "El método de mapeo consiste en elaborar primero un mapa conceptual y, con base en él, profundizar la revisión y desarrollar el marco.", src: "Cap. 4, p. 76" },
+  { topic: "Alcance", caso: "Al revisar la literatura sobre el uso de inteligencia artificial en los juzgados de Honduras, un estudiante solo encuentra notas de prensa e ideas vagamente relacionadas con su tema.",
+    ask: "¿Con qué alcance debería iniciar su estudio?",
+    opts: ["Exploratorio", "Descriptivo", "Correlacional", "Explicativo"],
+    ans: 0, why: "Cuando la literatura revela solo guías no investigadas e ideas vagamente relacionadas, el estudio inicia como exploratorio.", src: "Cap. 5, pp. 91 y 98" },
+  { topic: "Hipótesis", caso: "Un estudiante formula: «Los usuarios de tarjeta de crédito que recibieron educación financiera en el colegio tienen niveles de endeudamiento diferentes de los que no la recibieron».",
+    ask: "¿Qué tipo de hipótesis formuló?",
+    opts: ["Descriptiva de un dato que se pronostica", "Correlacional", "Causal", "De diferencia de grupos"],
+    ans: 3, why: "Compara dos grupos en una variable sin afirmar a cuál favorece la diferencia ni por qué ocurre.", src: "Cap. 6, p. 109" },
+  { topic: "Variables", caso: "En su tabla de variables, una estudiante escribe: «Educación financiera: puntaje de 0 a 10 obtenido en un cuestionario de diez preguntas sobre tasa de interés, pago mínimo, cargo por mora y fecha de corte».",
+    ask: "¿Qué es este enunciado?",
+    opts: ["Una definición conceptual", "Una hipótesis de investigación", "Una definición operacional", "Una variable interviniente"],
+    ans: 2, why: "Indica cómo se medirá la variable (instrumento y puntaje). La definición conceptual, en cambio, la explica con otros términos.", src: "Cap. 6, pp. 119–120" }
+];
+
+const LETTERS = ["a", "b", "c", "d"];
+const list = document.getElementById("questions");
+let state = QUESTIONS.map(() => null);
+
+function render() {
+  list.innerHTML = "";
+  QUESTIONS.forEach((q, i) => {
+    const li = document.createElement("li");
+    li.className = "q";
+    li.id = "q" + (i + 1);
+    li.innerHTML = `
+      <div class="q-head"><span class="q-num">${i + 1}</span><span class="q-topic">${q.topic}</span></div>
+      <p class="q-case">${q.caso}</p>
+      <p class="q-ask">${q.ask}</p>
+      <div class="opts" role="group" aria-label="Opciones de la pregunta ${i + 1}"></div>
+      <div class="feedback" hidden></div>`;
+    const opts = li.querySelector(".opts");
+    q.opts.forEach((text, j) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "opt";
+      b.id = `q${i + 1}-${LETTERS[j]}`;
+      b.innerHTML = `<span class="letter">${LETTERS[j]})</span><span>${text}</span><span class="tag"></span>`;
+      b.addEventListener("click", () => choose(i, j));
+      opts.appendChild(b);
+    });
+    list.appendChild(li);
+    if (state[i] !== null) paint(i);
+  });
+  update();
+}
+
+function choose(i, j) {
+  if (state[i] !== null) return;
+  state[i] = j;
+  paint(i);
+  update();
+}
+
+function paint(i) {
+  const q = QUESTIONS[i];
+  const li = document.getElementById("q" + (i + 1));
+  const chosen = state[i];
+  li.querySelectorAll(".opt").forEach((b, j) => {
+    b.disabled = true;
+    const tag = b.querySelector(".tag");
+    if (j === q.ans) { b.classList.add("is-correct"); tag.textContent = "Correcta"; }
+    else if (j === chosen) { b.classList.add("is-wrong"); tag.textContent = "Su respuesta"; }
+  });
+  const fb = li.querySelector(".feedback");
+  const ok = chosen === q.ans;
+  fb.innerHTML = `<span class="verdict ${ok ? "ok" : "bad"}">${ok ? "¡Correcto!" : "Incorrecto. La respuesta es " + LETTERS[q.ans] + ")."}</span>
+    <span>${q.why}</span><span class="src">Hernández-Sampieri et al. (2014), ${q.src}.</span>`;
+  fb.hidden = false;
+}
+
+function update() {
+  const answered = state.filter(s => s !== null).length;
+  const correct = state.filter((s, i) => s === QUESTIONS[i].ans).length;
+  document.getElementById("answered").textContent = answered;
+  document.getElementById("correct").textContent = correct;
+  document.getElementById("fill").style.width = (answered * 10) + "%";
+  const result = document.getElementById("result");
+  if (answered === QUESTIONS.length) {
+    document.getElementById("score").textContent = `${correct} / 10`;
+    const pts = (correct * 0.4).toFixed(1);
+    let msg;
+    if (correct >= 9) msg = "Domina los conceptos de los capítulos 1 al 6.";
+    else if (correct >= 7) msg = "Buen nivel. Repase las preguntas que falló y sus páginas.";
+    else msg = "Conviene repasar los capítulos de las preguntas que falló antes del examen.";
+    document.getElementById("result-text").textContent = `En el Tipo I del examen (10 preguntas de 0.4) equivaldría a ${pts} de 4 puntos. ${msg}`;
+    result.hidden = false;
+  } else {
+    result.hidden = true;
+  }
+}
+
+document.getElementById("reset").addEventListener("click", () => {
+  state = QUESTIONS.map(() => null);
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+render();
+</script>
